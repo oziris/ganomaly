@@ -1,0 +1,28 @@
+# Docker
+
+docker run --gpus all --name ganomaly_pytorch -it -p 8097:8097 -v /home/samo/workspace/ganomaly_pytorch:/workspace -v /home/samo/workspace/data:/data pytorch/pytorch:1.1.0-cuda10.0-cudnn7.5-runtime
+
+
+# Install
+
+pip install visdom
+pip install torchvision
+pip install sklearn
+pip install matplotlib
+
+
+# Visdom
+
+docker exec -it ganomaly_pytorch /bin/bash
+visdom
+http://0.0.0.0:8097/
+
+
+# Test Run
+
+python train.py --dataset mnist --isize 32 --nc 1 --niter 15 --anomaly_class 5 --manualseed 42 --display
+
+
+# GANomaly custom dataset
+
+python train.py --dataset dl4cv --isize 64 --nc 1 --niter 20 --manualseed 42 --display
