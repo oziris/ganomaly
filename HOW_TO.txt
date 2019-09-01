@@ -11,6 +11,11 @@ pip install sklearn
 pip install matplotlib
 
 
+# Image properties (ImageMagick - identify)
+
+identify normal_112700_Image01_Angle000.jpg 
+normal_112700_Image01_Angle000.jpg JPEG 64x64 64x64+0+0 8-bit Grayscale Gray 256c 1.01KB 0.000u 0:00.000
+
 # Visdom
 
 docker exec -it ganomaly_pytorch /bin/bash
