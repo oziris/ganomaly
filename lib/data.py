@@ -9,6 +9,7 @@ import os
 import torch
 import numpy as np
 import torchvision.datasets as datasets
+from PIL import Image
 from torchvision.datasets import MNIST
 from torchvision.datasets import CIFAR10
 from torchvision.datasets import ImageFolder
@@ -153,6 +154,35 @@ def load_data(opt):
                                                      else lambda x: np.random.seed(opt.manualseed)))
                       for x in splits}
         return dataloader
+    
+    elif opt.dataset in ['dl4cv']:
+        splits = ['train', 'test']
+        drop_last_batch = {'train': True, 'test': False}
+        shuffle = {'train': True, 'test': True}
+
+        transform = transforms.Compose(
+            [
+                transforms.Resize(opt.isize), 
+                transforms.ToTensor(),
+                transforms.Normalize((0.1476,), (0.1600,)),
+            ]
+        )        
+
+        dataset = {x: ImageFolder(os.path.join(opt.dataroot, x), 
+                                 loader=pil_loader_bw, 
+                                 transform=transform) 
+                   for x in splits}
+
+        dataloader = {x: torch.utils.data.DataLoader(dataset=dataset[x],
+                                                     batch_size=opt.batchsize,
+                                                     shuffle=shuffle[x],
+                                                     num_workers=int(opt.workers),
+                                                     drop_last=drop_last_batch[x],
+                                                     worker_init_fn=(None if opt.manualseed == -1
+                                                     else lambda x: np.random.seed(opt.manualseed)))
+                      for x in splits}
+
+        return dataloader
 
     else:
         splits = ['train', 'test']
@@ -169,14 +199,16 @@ def load_data(opt):
         #                                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)), ])
         transform = transforms.Compose(
             [
-                transforms.Resize(opt.isize),
-                transforms.Grayscale(num_output_channels=1), 
+                transforms.Resize(opt.isize), 
                 transforms.ToTensor(),
-                transforms.Normalize((0.5,), (0.5,)),
+                transforms.Normalize((0.1476,), (0.1600,)),
             ]
         )        
 
-        dataset = {x: ImageFolder(os.path.join(opt.dataroot, x), transform) for x in splits}
+        dataset = {x: ImageFolder(os.path.join(opt.dataroot, x), 
+                                 loader=pil_loader_bw, 
+                                 transform=transform) 
+                   for x in splits}
         dataloader = {x: torch.utils.data.DataLoader(dataset=dataset[x],
                                                      batch_size=opt.batchsize,
                                                      shuffle=shuffle[x],
@@ -403,3 +435,10 @@ def get_mnist2_anomaly_dataset(trn_img, trn_lbl, tst_img, tst_lbl, nrm_cls_idx=0
     new_tst_lbl = torch.cat((nrm_tst_lbl, abn_tst_lbl), dim=0)
 
     return new_trn_img, new_trn_lbl, new_tst_img, new_tst_lbl
+
+##
+def pil_loader_bw(path):
+    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('L')       
